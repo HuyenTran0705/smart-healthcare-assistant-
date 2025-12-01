@@ -1,4 +1,4 @@
-# smart-healthcare-assistant-
+# smart-healthcare-assistant-ui
 > **A full-stack Smart Healthcare solution integrating a Python-based LLM Voice Assistant with a Flutter Patient Management System.**
 
 ##  Introduction
@@ -12,7 +12,7 @@ This system demonstrates a seamless communication flow between a local **Python 
 * **Interactive Frontend (HTML/JS):** Features an animated "Robot Face" UI with Web Speech API integration for seamless voice-to-text and text-to-speech interaction.
 * **Management System (Flutter):** A robust cross-platform application for tracking patient records, managing medication schedules (X/O confirmation), and handling administrative tasks via a secure, password-protected gateway.
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 * **AI/Backend:** Python, Flask, OpenAI API (OpenRouter), SpeechRecognition, Pygame.
 * **Mobile/Web App:** Flutter, Dart, Firebase (Firestore).
