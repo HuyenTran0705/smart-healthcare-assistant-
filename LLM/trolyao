@@ -1,0 +1,87 @@
+from gtts import gTTS
+import speech_recognition as sr
+from openai import OpenAI
+import pygame, os, time, tempfile
+
+client = OpenAI(
+  base_url="https://openrouter.ai/api/v1",
+  api_key="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",
+)
+
+robot_ear = sr.Recognizer()
+robot_brain = ""
+pygame.mixer.init()
+
+while True:
+
+    with sr.Microphone() as mic:
+        print("Robot: Tôi đang nghe...")
+        audio = robot_ear.listen(mic)
+        print("Robot: ...")
+
+    try:
+        you = robot_ear.recognize_google(audio, language="vi-VN")
+    except:
+        you = ""
+
+    print("Bạn: " + you)
+
+    # 🚪 Nếu nghe thấy "tạm biệt" hoặc "bye" thì thoát luôn
+    if "tạm biệt" in you or "bye" in you:
+        print("Robot: Chào tạm biệt! Hẹn gặp lại bạn 👋")
+        break
+
+
+    try: 
+        completion = client.chat.completions.create(
+            extra_headers={
+            "HTTP-Referer": "<YOUR_SITE_URL>", # Optional. Site URL for rankings on openrouter.ai.
+            "X-Title": "<YOUR_SITE_NAME>", # Optional. Site title for rankings on openrouter.ai.
+            },
+            extra_body={},
+            model="deepseek/deepseek-r1-0528:free",
+            messages=[
+            {
+                "role": "system",
+                "content": "Bạn là một trợ lý AI thông minh, trả lời ngắn gọn."
+            }, 
+            {
+                "role": "user",
+                "content": you
+            }
+            ],
+            temperature=0.7,
+       )
+        robot_brain = completion.choices[0].message.content
+    except: 
+        robot_brain = "Xin lỗi, vui lòng thử lại sau."
+    
+
+    print("Robot:" + robot_brain)
+
+    # ==== Tạo file mp3 tạm, phát xong thì xóa ====
+    try:
+        # file tạm với tên duy nhất
+        tmp_path = os.path.join(tempfile.gettempdir(), f"voice_{int(time.time()*1000)}.mp3")
+        gTTS(text=robot_brain, lang='vi').save(tmp_path)
+
+        pygame.mixer.music.load(tmp_path)
+        pygame.mixer.music.play()
+
+        # chờ phát xong
+        clock = pygame.time.Clock()
+        while pygame.mixer.music.get_busy():
+            clock.tick(10)
+
+        # giải phóng và xóa file để lần sau không bị lock
+        try:
+            pygame.mixer.music.unload()  # cần pygame 2.x
+        except:
+            pass
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+    except Exception as e:
+        print("Lỗi phát âm thanh:", e)
+
+   
+  
