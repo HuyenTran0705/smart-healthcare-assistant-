@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // 👇 QUAN TRỌNG: Link này phải là link tab Flutter đang chạy
                 // Thường Flutter Web chạy ở port 8080. Hãy kiểm tra lại trình duyệt của bạn.
-                window.location.href = 'http://localhost:8080'; 
+                window.location.assign('http://127.0.0.1:3000');
             }
 
         } else {
