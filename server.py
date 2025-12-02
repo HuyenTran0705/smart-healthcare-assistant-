@@ -8,7 +8,7 @@ import locale
 # Lưu ý: Điền API Key của bạn vào dấu ngoặc kép bên dưới
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key="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", 
+    api_key="", 
 )
 
 app = Flask(__name__)
@@ -119,4 +119,5 @@ def chat_endpoint():
 if __name__ == '__main__':
     # Chạy server ở cổng 5000
     print("Server AI đang chạy... Hãy mở file index.html lên!")
+
     app.run(host='0.0.0.0', port=5000, debug=True)
