@@ -72,22 +72,31 @@ document.addEventListener('DOMContentLoaded', () => {
         passwordModal.classList.remove('show');
     });
 
+    // Nút Xác nhận pass
     confirmPassBtn.addEventListener('click', () => {
         const password = passInput.value;
         
         // KIỂM TRA MẬT KHẨU
         if (password === '1234') {
-            passwordModal.classList.remove('show');
+            passwordModal.classList.remove('show'); // Tắt popup
             
-            // --- GỬI TÍN HIỆU SANG FLUTTER ---
+            // --- LOGIC CHUYỂN TRANG ---
+            
+            // 1. Nếu đang chạy trong App Mobile (Flutter Mobile)
             if (window.ManagementChannel) {
-                // Trường hợp 1: Chạy trên Mobile App
                 window.ManagementChannel.postMessage('open_management_ui');
-            } else {
-                // Trường hợp 2: Chạy trên Flutter Web (VS Code)
-                // Gửi tin nhắn ra cửa sổ cha (Parent Window)
+            } 
+            // 2. Nếu đang chạy nhúng trong Iframe (Flutter Web dạng tích hợp)
+            else if (window.parent !== window) {
                 window.parent.postMessage('open_management_ui', '*');
-                console.log("Đã gửi lệnh chuyển trang sang Flutter Web");
+            }
+            // 3. Nếu đang chạy 2 tab riêng biệt trên trình duyệt
+            else {
+                alert("Mật khẩu đúng! Đang chuyển sang trang Quản lý...");
+                
+                // 👇 QUAN TRỌNG: Link này phải là link tab Flutter đang chạy
+                // Thường Flutter Web chạy ở port 8080. Hãy kiểm tra lại trình duyệt của bạn.
+                window.location.href = 'http://localhost:8080'; 
             }
 
         } else {
@@ -109,8 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     medYesBtn.addEventListener('click', () => {
         alert("Đã ghi nhận: Bệnh nhân ĐÃ uống thuốc ✅");
         medModal.classList.remove('show');
-        // Gửi thông tin này về Python để Robot biết (nếu cần)
-        // sendToPython("Điều dưỡng báo cáo: Bệnh nhân đã uống thuốc.");
+        // Có thể gửi log về Python ở đây nếu muốn
     });
 
     medNoBtn.addEventListener('click', () => {
@@ -192,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Hiển thị câu trả lời
             transcriptText.textContent = `AI: "${aiReply}"`;
             
-            // Robot đọc to câu trả lời
+            // Robot đọc to câu trả lời (Dùng hàm speak mới)
             speak(aiReply);
 
         } catch (error) {
@@ -201,13 +209,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Hàm Text-to-Speech (Robot nói)
+    // ==============================================
+    // [QUAN TRỌNG] HÀM ĐỌC GIỌNG NÓI (TEXT-TO-SPEECH)
+    // Đã nâng cấp để chọn đúng giọng Tiếng Việt
+    // ==============================================
     function speak(text) {
         // Ngắt lời nếu đang nói câu cũ
         window.speechSynthesis.cancel();
 
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'vi-VN'; 
+        
+        // Lấy danh sách giọng đọc có sẵn trong máy/trình duyệt
+        const voices = window.speechSynthesis.getVoices();
+        
+        // Tìm giọng ưu tiên: Google Tiếng Việt > Microsoft An > Bất kỳ giọng 'vi-VN' nào
+        const vnVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('vi')) 
+                     || voices.find(v => v.lang === 'vi-VN') 
+                     || voices.find(v => v.name.includes('Vietnamese'));
+
+        if (vnVoice) {
+            utterance.voice = vnVoice; // Ép dùng giọng Việt tìm được
+            // console.log("Đang đọc bằng giọng: " + vnVoice.name);
+        } else {
+            utterance.lang = 'vi-VN'; // Fallback nếu không tìm thấy
+        }
         
         // Hiệu ứng robot nhỏ nhún nhảy khi nói
         const smallRobot = document.querySelector('.small-robot');
@@ -218,6 +243,15 @@ document.addEventListener('DOMContentLoaded', () => {
             voiceStatus.textContent = "Nhấn micro để nói tiếp.";
         };
 
+        utterance.onerror = function(e) {
+            console.error("Lỗi đọc:", e);
+        };
+
         window.speechSynthesis.speak(utterance);
     }
+
+    // Sự kiện này giúp Chrome load danh sách giọng (fix lỗi lần đầu không có tiếng)
+    window.speechSynthesis.onvoiceschanged = function() {
+        window.speechSynthesis.getVoices();
+    };
 });
