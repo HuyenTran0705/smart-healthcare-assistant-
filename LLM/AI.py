@@ -7,7 +7,7 @@ import locale
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key="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",
+    api_key="",
 )
 
 robot_ear = sr.Recognizer()
@@ -180,3 +180,4 @@ while True:
             os.remove(tmp_path)
     except Exception as e:
         print("Lỗi phát âm thanh:", e)
+
