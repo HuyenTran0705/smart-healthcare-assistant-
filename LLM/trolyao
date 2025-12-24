@@ -5,7 +5,7 @@ import pygame, os, time, tempfile
 
 client = OpenAI(
   base_url="https://openrouter.ai/api/v1",
-  api_key="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",
+  api_key="",
 )
 
 robot_ear = sr.Recognizer()
@@ -85,3 +85,4 @@ while True:
 
    
   
+
